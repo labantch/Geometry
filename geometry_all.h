@@ -9,5 +9,6 @@
 #include "circles.h"
 #include "advanced.h"
 #include "polygon_inscribe.h"  
+#include "Simple.hpp"
 
 #endif
