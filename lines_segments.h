@@ -174,6 +174,11 @@ parallelLineCoefficients(ld A, ld B, ld C, ld R) {
     };
 }
 
+// Collinear means lying on the same straight line.
+bool collinear(pt a, pt b, pt c) {
+    return sgn(orient(a, b, c)) == 0;
+}
+
 // ============================================================================
 // SEGMENT OPERATIONS
 // ============================================================================
