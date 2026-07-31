@@ -179,6 +179,11 @@ bool collinear(pt a, pt b, pt c) {
     return sgn(orient(a, b, c)) == 0;
 }
 
+/*bool collinear(pt a, pt b, pt c) {
+    return fabsl((b.X - a.X) * (c.Y - a.Y) -
+                 (b.Y - a.Y) * (c.X - a.X)) < EPS;
+}*/
+
 // ============================================================================
 // SEGMENT OPERATIONS
 // ============================================================================
