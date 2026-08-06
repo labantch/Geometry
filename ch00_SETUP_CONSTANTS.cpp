@@ -2,9 +2,6 @@
 // Geometry Notebook — CHAPTER 0 — SETUP & CONSTANTS
 // ============================================================================
 
-#ifndef ICPC_GEOMETRY_HANDBOOK_H
-#define ICPC_GEOMETRY_HANDBOOK_H
-
 #include <bits/stdc++.h>
 using namespace std;
 
