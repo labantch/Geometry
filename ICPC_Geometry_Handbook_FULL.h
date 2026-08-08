@@ -473,6 +473,30 @@ ld distanceRayToRay(pt a, pt b, pt c, pt d) {
     });
 }
 
+// Distance Between Two Rays
+
+
+// شرح:
+// أقل مسافة بين شعاعين
+// لو الشعاعين بيتقاطعوا → المسافة = 0
+//
+// Distance between two rays
+ld distanceRayToRay(pt a, pt b, pt c, pt d) {
+
+    // If the rays intersect, distance = 0
+    if (raysIntersect(a, b, c, d))
+        return 0.0L;
+
+    // Otherwise, check all possible closest distances
+    return min({
+        distancePointToRay(a, b, c),
+        distancePointToRay(a, b, d),
+        distancePointToRay(c, d, a),
+        distancePointToRay(c, d, b)
+    });
+}
+
+
 // ============================================================================
 // CHAPTER 6 — SEGMENTS
 // شرح: عمليات على القطع المستقيمة (Segment) - بداية ونهاية محددتين
