@@ -117,5 +117,34 @@ bool isConvex(vector<pt>& polygon) {
     return true;
 }
 
+// نقطة مع فهرسها الأصلي (مفيد بعد الـ hull)
+struct PP {
+    pt po;
+    int idx;
+};
+
+// Convex hull (Andrew) على PP — رجّع CCW
+// لازم pts تكون متخصوصية حسب x ثم y قبل النداء
+vector<PP> convexHullPP(vector<PP>& pts) {
+    int n = (int)pts.size(), k = 0;
+    if (n <= 1) return pts;
+    sort(pts.begin(), pts.end(), [](const PP& a, const PP& b) {
+        if (fabsl(a.po.X - b.po.X) > EPS) return a.po.X < b.po.X;
+        return a.po.Y < b.po.Y;
+    });
+    vector<PP> H(2 * n);
+    for (int i = 0; i < n; ++i) {
+        while (k >= 2 && cross(H[k - 1].po - H[k - 2].po, pts[i].po - H[k - 2].po) < -EPS) k--;
+        H[k++] = pts[i];
+    }
+    for (int i = n - 2, t = k + 1; i >= 0; --i) {
+        while (k >= t && cross(H[k - 1].po - H[k - 2].po, pts[i].po - H[k - 2].po) < -EPS) k--;
+        H[k++] = pts[i];
+    }
+    if (k > 0) H.resize(k - 1);
+    else H.clear();
+    return H;
+}
+
 
 // ============================================================================

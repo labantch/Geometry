@@ -77,4 +77,74 @@ long long unionRectangleArea(vector<RectInt> rects) {
 }
 
 
+// حدث خط المسح لاتحاد مستطيلات
+struct UnionEvent {
+    int x, y1, y2, type; // +1 start, -1 end
+    bool operator<(const UnionEvent& o) const { return x < o.x; }
+};
+
+// شجرة قطاعات لطول الغطاء على محور y
+struct SegTree {
+    struct Node { int cover; ld length; };
+    vector<Node> st;
+    vector<int> ys;
+    int N;
+
+    SegTree(const vector<int>& _ys) : ys(_ys) {
+        N = (int)ys.size() - 1;
+        st.assign(4 * max(1, N), {0, 0});
+    }
+
+    void update(int p, int l, int r, int ql, int qr, int val) {
+        if (qr <= l || r <= ql) return;
+        if (ql <= l && r <= qr) {
+            st[p].cover += val;
+        } else {
+            int m = (l + r) / 2;
+            update(p << 1, l, m, ql, qr, val);
+            update(p << 1 | 1, m, r, ql, qr, val);
+        }
+        if (st[p].cover > 0)
+            st[p].length = (ld)(ys[r] - ys[l]);
+        else if (l + 1 == r)
+            st[p].length = 0;
+        else
+            st[p].length = st[p << 1].length + st[p << 1 | 1].length;
+    }
+
+    void update(int y1, int y2, int v) {
+        int l = lower_bound(ys.begin(), ys.end(), y1) - ys.begin();
+        int r = lower_bound(ys.begin(), ys.end(), y2) - ys.begin();
+        update(1, 0, N, l, r, v);
+    }
+
+    ld coveredLength() const { return st[1].length; }
+};
+
+// مساحة اتحاد مستطيلات محاذاة للمحاور {x1,y1,x2,y2}
+ld areaUnionRectangles(const vector<array<int, 4>>& rectangles) {
+    vector<UnionEvent> events;
+    vector<int> ys;
+    for (auto& r : rectangles) {
+        int x1 = r[0], y1 = r[1], x2 = r[2], y2 = r[3];
+        events.push_back({x1, y1, y2, +1});
+        events.push_back({x2, y1, y2, -1});
+        ys.push_back(y1); ys.push_back(y2);
+    }
+    if (events.empty()) return 0;
+    sort(ys.begin(), ys.end());
+    ys.erase(unique(ys.begin(), ys.end()), ys.end());
+    SegTree st(ys);
+    sort(events.begin(), events.end());
+    ld area = 0;
+    int prev_x = events[0].x;
+    for (auto& e : events) {
+        area += st.coveredLength() * (e.x - prev_x);
+        st.update(e.y1, e.y2, e.type);
+        prev_x = e.x;
+    }
+    return area;
+}
+
+
 // ============================================================================

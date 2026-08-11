@@ -58,5 +58,17 @@ bool inAngle(pt a, pt b, pt c, pt p) {
     return (abp >= 0 && acp <= 0) ^ (abc < 0);
 }
 
+// الزاوية الموقّعة بين متجهين (موجب = عكس عقارب الساعة)
+// Signed angle from v to w in radians (CCW positive)
+ld signedAngleBetween(pt v, pt w) {
+    return atan2l(cross(v, w), dotProduct(v, w));
+}
+
+// هل النقطة في النصف العلوي؟ (للـ polar sort)
+// Upper half-plane test used in polar sort
+bool half(pt p) {
+    return p.Y > 0 || (fabsl(p.Y) < EPS && p.X < 0);
+}
+
 
 // ============================================================================

@@ -94,4 +94,18 @@ pt rejection(pt a, pt b) {
 }
 
 
+// هل المثلث قائم الزاوية عند أي رأس؟
+// True if triangle abc has a right angle at any vertex
+bool isRightAngled(pt a, pt b, pt c) {
+    return arePerpendicular(b - a, c - a)
+        || arePerpendicular(a - b, c - b)
+        || arePerpendicular(a - c, b - c);
+}
+
+// انعكاس النقطة p حول النقطة c (نقطة تماثل)
+// Reflect point p over point c
+pt reflectPoint(pt p, pt c) {
+    return (ld)2 * c - p;
+}
+
 // ============================================================================

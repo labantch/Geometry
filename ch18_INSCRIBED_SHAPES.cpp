@@ -417,4 +417,85 @@ vector<pt> largestTriangleInPolygon(vector<pt>& polygon, int samples = 1000) {
 }
 
 
+// مثلث + دائرة محيطة (لـ Bowyer–Watson)
+struct TriCirc {
+    pt a, b, c, circum;
+    ld radius2;
+    TriCirc(pt A, pt B, pt C) : a(A), b(B), c(C) {
+        ld d = 2 * cross(b - a, c - a);
+        if (fabsl(d) < EPS) { circum = {0, 0}; radius2 = -1; }
+        else {
+            pt u = b - a, v = c - a;
+            pt num = rotate90CCW(u) * sq(v) - rotate90CCW(v) * sq(u);
+            circum = a + num / d;
+            radius2 = sq(circum - a);
+        }
+    }
+    bool containsInCircum(pt p) const {
+        if (radius2 < 0) return false;
+        return sq(p - circum) <= radius2 + EPS;
+    }
+};
+
+struct DEdge {
+    pt u, v;
+    bool operator<(const DEdge& o) const {
+        if (fabsl(u.X - o.u.X) > EPS) return u.X < o.u.X;
+        if (fabsl(u.Y - o.u.Y) > EPS) return u.Y < o.u.Y;
+        if (fabsl(v.X - o.v.X) > EPS) return v.X < o.v.X;
+        return v.Y < o.v.Y;
+    }
+};
+
+// أكبر نصف قطر لدائرة جوه مستطيل [0,n]×[0,m] تبعد عن عوائق pts
+ld largestCircleInRectangle(ld n, ld m, vector<pt> pts) {
+    ld mx = max(n, m) * 10;
+    pt A(0, -mx), B(mx * 2, 0), C(0, mx * 2);
+    vector<TriCirc> tris{TriCirc(A, B, C)};
+
+    for (pt pt : pts) {
+        vector<DEdge> boundary;
+        vector<TriCirc> new_tris;
+        for (auto& tri : tris) {
+            if (tri.containsInCircum(pt)) {
+                boundary.push_back({tri.a, tri.b});
+                boundary.push_back({tri.b, tri.c});
+                boundary.push_back({tri.c, tri.a});
+            } else new_tris.push_back(tri);
+        }
+        map<DEdge, int> cnt;
+        for (auto& e : boundary) cnt[e]++;
+        boundary.clear();
+        for (auto& kv : cnt) if (kv.second == 1) boundary.push_back(kv.first);
+        for (auto& e : boundary) new_tris.emplace_back(e.u, e.v, pt);
+        tris.swap(new_tris);
+    }
+
+    vector<TriCirc> final_tris;
+    auto same = [&](pt u, pt v) { return abs(u - v) < EPS; };
+    for (auto& tri : tris) {
+        if (same(tri.a, A) || same(tri.a, B) || same(tri.a, C) ||
+            same(tri.b, A) || same(tri.b, B) || same(tri.b, C) ||
+            same(tri.c, A) || same(tri.c, B) || same(tri.c, C)) continue;
+        final_tris.push_back(tri);
+    }
+
+    vector<pt> candidates = {{0, 0}, {n, 0}, {0, m}, {n, m}};
+    for (pt o : pts) {
+        if (o.Y >= 0 && o.Y <= m) { candidates.push_back({0, o.Y}); candidates.push_back({n, o.Y}); }
+        if (o.X >= 0 && o.X <= n) { candidates.push_back({o.X, 0}); candidates.push_back({o.X, m}); }
+    }
+    for (auto& tri : final_tris) candidates.push_back(tri.circum);
+
+    ld best = 0;
+    for (pt C : candidates) {
+        if (C.X < 0 || C.X > n || C.Y < 0 || C.Y > m) continue;
+        ld d_obs = 1e100L;
+        for (pt o : pts) d_obs = min(d_obs, abs(C - o));
+        ld d_wall = min({C.X, n - C.X, C.Y, m - C.Y});
+        best = max(best, min(d_obs, d_wall));
+    }
+    return best;
+}
+
 // ============================================================================

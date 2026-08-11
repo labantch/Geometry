@@ -74,4 +74,59 @@ ld distanceRayToRay(pt a, pt b, pt c, pt d) {
     });
 }
 
+
+// شعاع: نقطة بداية + اتجاه وحدة
+// Ray: origin + unit direction
+struct Ray {
+    pt origin;
+    pt direction; // unit length
+};
+
+// بناء شعاع من نقطتين a → b
+// Build unit ray from a toward b
+Ray makeRay(pt a, pt b) {
+    pt d = b - a;
+    return {a, d / abs(d)};
+}
+
+// تقاطع شعاعين (المعامل t >= 0 للاتنين)
+// Intersection of two rays (both parameters >= 0)
+bool intersectRay(Ray r1, Ray r2, pt& out) {
+    pt dp = r2.origin - r1.origin;
+    ld denom = cross(r1.direction, r2.direction);
+    if (fabsl(denom) < EPS) return false;
+    ld t1 = cross(dp, r2.direction) / denom;
+    ld t2 = cross(dp, r1.direction) / denom;
+    if (t1 < -EPS || t2 < -EPS) return false;
+    out = r1.origin + r1.direction * t1;
+    return true;
+}
+
+// استرجاع الشعاع التاني من المنصف: U معروف، B منصف → الشعاع الآخر
+// Given known ray U and bisector B, recover the other ray direction
+pt recoverOtherRay(pt U, pt B) {
+    ld nu = abs(U), nb = abs(B);
+    pt u = U / nu, b = B / nb;
+    ld d = dotProduct(b, u);
+    return (2.0L * d * b - u) * nu; // reflect & rescale
+}
+
+// تقاطع شعاع (origin → dir) مع قطعة seg
+// Ray–segment intersection
+struct Segment { pt a, b; };
+
+bool raySegmentIntersection(pt origin, pt dir, Segment seg, pt& out) {
+    pt r = dir;
+    pt q = seg.a;
+    pt s = seg.b - seg.a;
+    ld rxs = cross(r, s);
+    if (fabsl(rxs) < EPS) return false; // parallel
+    ld t = cross(q - origin, s) / rxs;
+    ld u = cross(q - origin, r) / rxs;
+    if (t < -EPS) return false;          // behind ray origin
+    if (u < -EPS || u > 1 + EPS) return false;
+    out = origin + r * t;
+    return true;
+}
+
 // ============================================================================

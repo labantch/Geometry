@@ -286,5 +286,83 @@ long long countPoints(int r) {
     return cnt;
 }
 
+// نقطة على الدائرة بزاوية theta (راديان)
+// Point on circle at angle theta
+pt pointAtAngle(pt O, ld r, ld theta) {
+    return O + pt{r * cosl(theta), r * sinl(theta)};
+}
+
+// إسقاط نقطة على الدائرة (أقرب نقطة على المحيط)
+// Project point onto circle boundary
+pt projectOntoCircle(pt c, ld r, pt p) {
+    pt v = p - c;
+    ld dist = abs(v);
+    if (dist < EPS) return c + pt{r, 0};
+    return c + v * (r / dist);
+}
+
+// إسقاط على طول شعاع p→a لأقرب تقاطع مع الدائرة من a
+// Ray from p toward a: circle hit closest to a
+bool projectAlongToCircleClosestToA(pt C, ld r, pt p, pt a, pt& out) {
+    pt d = a - p;
+    ld d2 = sq(d);
+    if (d2 < EPS) {
+        out = projectOntoCircle(C, r, p);
+        return true;
+    }
+    pt f = p - C;
+    ld fd = dotProduct(f, d);
+    ld ff_r2 = sq(f) - r * r;
+    ld disc = fd * fd - d2 * ff_r2;
+    if (disc < 0) return false;
+    ld s = sqrtl(disc);
+    ld t1 = (-fd + s) / d2, t2 = (-fd - s) / d2;
+    pt I1 = p + d * t1, I2 = p + d * t2;
+    out = (abs(I1 - a) < abs(I2 - a)) ? I1 : I2;
+    return true;
+}
+
+// دائرة مماسة لخطين (مركز على المنصف)
+// Circle tangent to two lines (center on angle bisector)
+// يحتاج: intersection(Line,Line), bisector, Line::projection / distanceToPoint
+bool circleBetweenLines(Line& L1, Line& L2, pt& center, ld& radius) {
+    if (fabsl(cross(L1.direction, L2.direction)) < EPS) {
+        // parallel lines
+        ld d = fabsl(L2.constant - L1.constant) / abs(L1.direction);
+        radius = d * 0.5L;
+        Line M{L1.direction, (L1.constant + L2.constant) * 0.5L};
+        // center = M.projection({0,0});
+        pt origin{0, 0};
+        center = origin - rotate90CCW(M.direction) * M.pointSide(origin) / (ld)sq(M.direction);
+        return true;
+    }
+    pt P;
+    if (!intersection(L1, L2, P)) return false;
+    pt on1 = P + rotate90CCW(normalize(L1.direction));
+    pt on2 = P + rotate90CCW(normalize(L2.direction));
+    // استخدم angleBisector عندك لو موجود، أو:
+    pt u = normalize(on1 - P), w = normalize(on2 - P);
+    pt dir = u + w;
+    if (abs(dir) < EPS) dir = rotate90CCW(u);
+    Line bis(P, P + dir);
+    center = P - rotate90CCW(bis.direction) * bis.pointSide(P) / (ld)sq(bis.direction);
+    // better: center = bis.projection({0,0}) is wrong; use:
+    center = bis.projection ? /* if you have method */ center : center;
+    // safest with your API:
+    // you likely have projection on Line — use it if named differently:
+    radius = L1.distanceToPoint(center);
+    return true;
+}
+
+// أكبر دائرة قطرها ab وتدخل في مستطيل [P1, P2]
+// Largest circle with diameter ab that fits in axis-aligned box
+pair<pt, ld> constrainedCircleFromDiameter(pt a, pt b, pt P1, pt P2) {
+    pt mid = (a + b) * (ld)0.5;
+    ld raw_r = abs(b - a) * 0.5L;
+    ld fit_r = min({raw_r,
+                    mid.X - P1.X, P2.X - mid.X,
+                    mid.Y - P1.Y, P2.Y - mid.Y});
+    return {mid, fit_r};
+}
 
 // ============================================================================

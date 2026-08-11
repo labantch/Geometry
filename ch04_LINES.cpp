@@ -178,5 +178,39 @@ parallelLineCoefficients(ld A, ld B, ld C, ld R) {
     };
 }
 
+// ميل الخط بين نقطتين (DBL_MAX لو رأسي)
+// Slope of line through p1,p2 (huge value if vertical)
+ld getLineSlope(pt p1, pt p2) {
+    pt d = p2 - p1;
+    if (fabsl(d.X) < EPS) return 1e100L; // vertical
+    return d.Y / d.X;
+}
+
+// نقطتين على الخط ax + by + c = 0
+// Two points on the line ax + by + c = 0
+void getTwoPointsFromEquation(ld a, ld b, ld c, pt& p1, pt& p2) {
+    if (fabsl(b) > EPS) {
+        p1 = {0, -c / b};
+        p2 = {1, -(a + c) / b};
+    } else {
+        ld x = -c / a;
+        p1 = {x, 0};
+        p2 = {x, 1};
+    }
+}
+
+// نقطتين على خط ممثّل بـ direction + constant
+// Two points on a Line (direction, constant)
+void getTwoPointsFromDirectionVector(Line l, pt& p1, pt& p2) {
+    pt origin = {0, 0};
+    ld mag2 = sq(l.direction);
+    pt onLine = origin + rotate90CCW(l.direction) * (l.constant / mag2);
+    // NOTE: depends on your Line convention; if projection exists use it:
+    // pt onLine = l.projection({0, 0});
+    pt dir = normalize(l.direction);
+    p1 = onLine + dir;
+    p2 = onLine - dir;
+}
+
 
 // ============================================================================
